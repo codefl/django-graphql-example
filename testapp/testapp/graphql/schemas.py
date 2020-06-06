@@ -1,5 +1,5 @@
 import graphene
-from .product.mutation import ProductMutations
+from .product.mutation import ProductMutations, CategoryMutations
 from .product.query import ProductQueries, ProductVariationQueries, CategoryQueries
 
 
@@ -13,6 +13,7 @@ class Query (
 
 class Mutation (
     ProductMutations,
+    CategoryMutations,
 ):
     pass
 
