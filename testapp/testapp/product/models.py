@@ -5,7 +5,7 @@ from . import Currency
 
 class CategoryModel(MPTTModel):
     name = models.CharField(max_length=100, blank=False)
-    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=False, related_name='children')
+    parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
 
     class MPTTMeta:
         order_insertion_by = ['name']
