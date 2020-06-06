@@ -25,10 +25,18 @@ class CategoryType(DjangoObjectType):
     class Meta:
         model = CategoryModel
 
+    @staticmethod
+    def resolve_products(root, info, **kwargs):
+        return info.context.products_by_category_id_loader.load(root.id)
+
 
 class ProductVariationType(DjangoObjectType):
     class Meta:
         model = ProductVariationModel
+
+    @staticmethod
+    def resolve_product(root, info, **kwargs):
+        return info.context.products_by_product_id_loader.load(root.product_id)
 
 
 class ErrorType(graphene.ObjectType):

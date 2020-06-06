@@ -1,5 +1,5 @@
 from django.utils.functional import cached_property
-from .product.dataloaders.product_dataloaders import CategoryLoader, ProductVariationLoader
+from .product.dataloaders.product_dataloaders import CategoryLoader, ProductLoader, CategoryProductLoader, ProductVariationLoader
 
 
 class GQLContext:
@@ -18,3 +18,11 @@ class GQLContext:
     @cached_property
     def variations_by_product_id_loader(self):
         return ProductVariationLoader()
+
+    @cached_property
+    def products_by_product_id_loader(self):
+        return ProductLoader()
+
+    @cached_property
+    def products_by_category_id_loader(self):
+        return CategoryProductLoader()
