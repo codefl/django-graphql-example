@@ -170,9 +170,125 @@ class Mutation (
 schema = graphene.Schema(query=Query, mutation=Mutation)
 ```
 
-# 4 Others
+# 4 Data Loader
 
-## 4.1 DB SQL Logging
+## 4.1 Preparation
+
+Best Practices
+* Data loader instance per request
+* Add dataloader instance to custom context per request
+* Add custom view object to initiate the context
+
+### 4.1.1 Add custom context object
+
+```python
+# add context.py with the following content
+
+from django.utils.functional import cached_property
+from .product.dataloaders.product_dataloaders import CategoryLoader, ProductVariationLoader
+
+class GQLContext:
+
+    def __init__(self, request):
+        self.request = request
+
+    @cached_property
+    def user(self):
+        return self.request.user
+
+    @cached_property
+    def categories_by_category_id_loader(self):
+        return CategoryLoader()
+
+    @cached_property
+    def variations_by_product_id_loader(self):
+        return ProductVariationLoader()
+```
+
+### 4.1.2 Add custom view object to initiate the custom context
+
+```python
+# Add views.py
+
+from graphene_django.views import GraphQLView
+from .context import GQLContext
+
+class CustomGraphQLView(GraphQLView):
+
+    def get_context(self, request):
+        return GQLContext(request)
+```
+
+### 4.1.3 Wire the custom view object to handle graphql request
+
+```python
+# Update urls.py
+
+from django.urls import path
+from django.views.decorators.csrf import csrf_exempt
+from .graphql.views import CustomGraphQLView
+
+urlpatterns = [
+    # ....
+    path("graphql", csrf_exempt(CustomGraphQLView.as_view(graphiql=True))),
+]
+```
+
+## 4.2 Implement Data Loader for each scenarios
+
+### 4.2.1 Example for many to one relation
+
+Load "Category" when requesting "Product"
+
+```python
+from collections import defaultdict
+from promise import Promise
+from promise.dataloader import DataLoader
+from ....product.models import CategoryModel
+
+class CategoryLoader(DataLoader):
+
+    def batch_load_fn(self, category_ids):
+        # Build the defaultdict to make sure it returns None when the category id does not exist
+        category_by_category_ids = defaultdict(CategoryModel)
+
+        # Query the database
+        for category in CategoryModel.objects.filter(pk__in=category_ids).iterator():
+            category_by_category_ids[category.id] = category
+
+        # Construct the result (same order as the request "category_ids")
+        result = [category_by_category_ids[category_id] for category_id in category_ids]
+        return Promise.resolve(result)
+```
+
+### 4.2.2 Example for one to many relation
+
+Load "ProductVariation" when requesting "Product"
+
+```python
+from collections import defaultdict
+from promise import Promise
+from promise.dataloader import DataLoader
+from ....product.models import ProductVariationModel
+
+class ProductVariationLoader(DataLoader):
+
+    def batch_load_fn(self, product_ids):
+        # Build the defaultdict to make sure it returns None when the category id does not exist
+        variations_by_product_ids = defaultdict(list)
+
+        # Query the database
+        for variation in ProductVariationModel.objects.filter(product_id__in=product_ids).iterator():
+            variations_by_product_ids[variation.product_id].append(variation)
+
+        # Construct the result (same order as the request "product_ids")
+        result = [variations_by_product_ids.get(product_id, []) for product_id in product_ids]
+        return Promise.resolve(result)
+```
+
+# 5 Others
+
+## 5.1 DB SQL Logging
 
 Add the following snippet to settings.py
 
