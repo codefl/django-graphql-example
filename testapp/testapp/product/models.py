@@ -26,7 +26,8 @@ class ProductModel(models.Model):
 
 
 class ProductVariationModel(models.Model):
-    product = models.ForeignKey(ProductModel, on_delete=models.DO_NOTHING)
+    product = models.ForeignKey(ProductModel, on_delete=models.DO_NOTHING, related_name='variations',
+                                null=False, blank=False)
     sku_no = models.CharField(max_length=100, blank=False)
     variation = models.CharField(max_length=100, blank=False)
     description = models.CharField(max_length=100, blank=True)
