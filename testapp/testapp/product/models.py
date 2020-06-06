@@ -14,12 +14,21 @@ class CategoryModel(MPTTModel):
         return self.name
 
 
+class TagModel(models.Model):
+    name = models.CharField(max_length=100, blank=False)
+    description = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class ProductModel(models.Model):
     name = models.CharField(max_length=100, blank=False)
     description = models.CharField(max_length=100, blank=True)
 
     category = models.ForeignKey(CategoryModel, on_delete=models.DO_NOTHING, related_name='products',
                                  null=False, blank=False)
+    tags = models.ManyToManyField(TagModel, related_name="products")
 
     def __str__(self):
         return self.name
