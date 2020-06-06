@@ -1,5 +1,10 @@
 from django.contrib import admin
-from .models import ProductModel, ProductVariationModel, CategoryModel
+from .models import ProductModel, ProductVariationModel, CategoryModel, TagModel
+
+
+class ProductTagInline(admin.TabularInline):
+    model = ProductModel.tags.through
+    extra = 1
 
 
 class ProductVariationModelInline(admin.TabularInline):
@@ -12,8 +17,9 @@ class ProductModelAdmin(admin.ModelAdmin):
     list_filter = ['category']
     search_fields = ['name']
 
-    inlines = [ProductVariationModelInline]
+    inlines = [ProductVariationModelInline, ProductTagInline]
 
 
 admin.site.register(ProductModel, ProductModelAdmin)
 admin.site.register(CategoryModel)
+admin.site.register(TagModel)
