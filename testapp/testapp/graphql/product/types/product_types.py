@@ -1,6 +1,7 @@
 import graphene
 from graphene_django import DjangoObjectType
 from ....product.models import ProductModel, CategoryModel, ProductVariationModel
+from ..dataloaders.product_dataloaders import CategoryLoader
 
 
 ###########################################################################
@@ -10,6 +11,14 @@ from ....product.models import ProductModel, CategoryModel, ProductVariationMode
 class ProductType(DjangoObjectType):
     class Meta:
         model = ProductModel
+
+    @staticmethod
+    def resolve_category(root, info, **kwargs):
+        return info.context.categories_by_category_id_loader.load(root.category_id)
+
+    @staticmethod
+    def resolve_variations(root, info, **kwargs):
+        return info.context.variations_by_product_id_loader.load(root.id)
 
 
 class CategoryType(DjangoObjectType):
