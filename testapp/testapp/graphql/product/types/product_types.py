@@ -1,7 +1,6 @@
 import graphene
 from graphene_django import DjangoObjectType
 from ....product.models import ProductModel, CategoryModel, ProductVariationModel
-from ..dataloaders.product_dataloaders import CategoryLoader
 
 
 ###########################################################################
@@ -37,24 +36,3 @@ class ProductVariationType(DjangoObjectType):
     @staticmethod
     def resolve_product(root, info, **kwargs):
         return info.context.products_by_product_id_loader.load(root.product_id)
-
-
-class ErrorType(graphene.ObjectType):
-    error_code = graphene.String()
-    error_message = graphene.String()
-
-
-class ProductResponseType(graphene.Union):
-    class Meta:
-        types = (ProductType, ErrorType)
-
-
-class CategoryResponseType(graphene.Union):
-    class Meta:
-        types = (CategoryType, ErrorType)
-
-
-class ProductVariationResponseType(graphene.Union):
-    class Meta:
-        types = (ProductVariationType, ErrorType)
-
