@@ -8,4 +8,4 @@ class Currency(Enum):
 
     @classmethod
     def choices(cls):
-        return [(i, i.value) for i in cls]
+        return [(i.name, i.value) for i in cls]
