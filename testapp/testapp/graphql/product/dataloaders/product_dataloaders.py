@@ -74,9 +74,9 @@ class ProductTagLoader(DataLoader):
     def batch_load_fn(self, product_ids):
         # Query the database
         product_tags = []
-        tag_id_set = {}
+        tag_id_set = set()
         for product_tag in TagModel.products.through.objects.filter(productmodel_id__in=product_ids).iterator():
-            product_tags.append[(product_tag.productmodel_id, product_tag.tagmodel_id)]
+            product_tags.append((product_tag.productmodel_id, product_tag.tagmodel_id))
             tag_id_set.add(product_tag.tagmodel_id)
 
         tags = defaultdict(None)
