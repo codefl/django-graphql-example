@@ -1,7 +1,7 @@
 import graphene
 from ..types.response_types import ProductResponseType
 from ...common.common_types import ErrorType
-from ....product.models import ProductModel, CategoryModel
+from ....product.models import ProductModel, CategoryModel, TagModel
 from django.db import models
 
 
@@ -113,7 +113,6 @@ class DeleteProductMutation(graphene.Mutation):
 
 
 class ProductAddTagMutation(graphene.Mutation):
-
     class Arguments:
         product_id = graphene.Int(required=True)
         tag_ids = graphene.List(graphene.Int, required=True)
@@ -123,7 +122,30 @@ class ProductAddTagMutation(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, product_id, tag_ids):
-        pass
+        try:
+            product = ProductModel.objects.get(pk=product_id)
+            product_tags = list(product.tags.all())
+            tags = TagModel.objects.filter(pk__in=tag_ids)
+
+            tags_to_add = []
+            for tag in tags:
+                found = False
+                for t in product_tags:
+                    if t.id == tag.id:
+                        found = True
+                        break
+                if not found:
+                    tags_to_add.append(tag)
+
+            # Add tags to product tags
+            if len(tags_to_add) > 0:
+                product.tags.add(*tags_to_add)
+
+            return ProductAddTagMutation(ok=True)
+        except ProductModel.DoesNotExist:
+            r = ErrorType(error_code="PRODUCT_NOT_EXIST",
+                          error_message="Product with id {} does not exists".format(product_id))
+            return UpdateProductMutation(ok=False, response=r)
 
 
 class ProductRemoveTagMutation(graphene.Mutation):
@@ -136,4 +158,13 @@ class ProductRemoveTagMutation(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, product_id, tag_ids):
-        pass
+        try:
+            product = ProductModel.objects.get(pk=product_id)
+            tags = list(TagModel.objects.filter(pk__in=tag_ids))
+
+            product.tags.remove(*tags)
+            return ProductAddTagMutation(ok=True)
+        except ProductModel.DoesNotExist:
+            r = ErrorType(error_code="PRODUCT_NOT_EXIST",
+                          error_message="Product with id {} does not exists".format(product_id))
+            return UpdateProductMutation(ok=False, response=r)

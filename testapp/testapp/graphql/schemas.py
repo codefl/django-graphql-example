@@ -1,12 +1,13 @@
 import graphene
 from .product.mutation import ProductMutations, CategoryMutations, ProductVariationMutations, TagMutations
-from .product.query import ProductQueries, ProductVariationQueries, CategoryQueries
+from .product.query import ProductQueries, ProductVariationQueries, CategoryQueries, TagQueries
 
 
 class Query (
     ProductQueries,
     ProductVariationQueries,
     CategoryQueries,
+    TagQueries,
 ):
     pass
 

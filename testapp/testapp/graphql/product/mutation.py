@@ -1,5 +1,6 @@
 import graphene
 from .mutations.product_mutations import CreateProductMutation, UpdateProductMutation, DeleteProductMutation
+from .mutations.product_mutations import ProductAddTagMutation, ProductRemoveTagMutation
 from .mutations.category_mutations import CreateCategoryMutation, UpdateCategoryMutation, DeleteCategoryMutation
 from .mutations.product_variation_mutations import CreateProductVariationMutation, UpdateProductVariationMutation
 from .mutations.product_variation_mutations import DeleteProductVariationMutation
@@ -10,6 +11,8 @@ class ProductMutations(graphene.ObjectType):
     create_product = CreateProductMutation.Field()
     update_product = UpdateProductMutation.Field()
     delete_product = DeleteProductMutation.Field()
+    add_product_tags = ProductAddTagMutation.Field()
+    remove_product_tags = ProductRemoveTagMutation.Field()
 
 
 class CategoryMutations(graphene.ObjectType):

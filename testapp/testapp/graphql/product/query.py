@@ -1,8 +1,8 @@
 import graphene
-from .types.product_types import ProductType, CategoryType, ProductVariationType
-from .types.response_types import ProductResponseType, CategoryResponseType
+from .types.product_types import ProductType, CategoryType, ProductVariationType, TagType
+from .types.response_types import ProductResponseType, CategoryResponseType, TagResponseType
 from ..common.common_types import ErrorType
-from ...product.models import ProductModel, CategoryModel, ProductVariationModel
+from ...product.models import ProductModel, CategoryModel, ProductVariationModel, TagModel
 
 
 ###########################################################################
@@ -10,8 +10,8 @@ from ...product.models import ProductModel, CategoryModel, ProductVariationModel
 ###########################################################################
 class ProductQueries(graphene.ObjectType):
     products = graphene.List(ProductType, name=graphene.Argument(graphene.String))
-    product = graphene.Field(ProductResponseType, id=graphene.ID())
-    product_variations = graphene.List(ProductVariationType, product_id=graphene.Argument(graphene.ID))
+    product = graphene.Field(ProductResponseType, id=graphene.Argument(graphene.Int, required=True))
+    product_variations = graphene.List(ProductVariationType, product_id=graphene.Argument(graphene.Int, required=True))
 
     @staticmethod
     def resolve_products(self, info, **kwargs):
@@ -31,8 +31,8 @@ class ProductQueries(graphene.ObjectType):
 
 
 class ProductVariationQueries(graphene.ObjectType):
-    product_variations = graphene.List(ProductVariationType, product_id=graphene.Argument(graphene.ID, required=True))
-    product_variation = graphene.Field(ProductVariationType, id=graphene.ID())
+    product_variations = graphene.List(ProductVariationType, product_id=graphene.Argument(graphene.Int, required=True))
+    product_variation = graphene.Field(ProductVariationType, id=graphene.Argument(graphene.Int, required=True))
 
     @staticmethod
     def resolve_product_variations(self, info, **kwargs):
@@ -50,7 +50,7 @@ class ProductVariationQueries(graphene.ObjectType):
 
 class CategoryQueries(graphene.ObjectType):
     categories = graphene.List(CategoryType, name=graphene.Argument(graphene.String))
-    category = graphene.Field(CategoryResponseType, id=graphene.ID())
+    category = graphene.Field(CategoryResponseType, id=graphene.Argument(graphene.Int, required=True))
 
     @staticmethod
     def resolve_categories(self, info, **kwargs):
@@ -67,3 +67,24 @@ class CategoryQueries(graphene.ObjectType):
             return CategoryModel.objects.get(pk=_id)
         except CategoryModel.DoesNotExist:
             return ErrorType(error_code="NOT_EXIST", error_message="Category does not exist...")
+
+
+class TagQueries(graphene.ObjectType):
+    tags = graphene.List(TagType, name=graphene.Argument(graphene.String))
+    tag = graphene.Field(TagResponseType, id=graphene.Argument(graphene.Int, required=True))
+
+    @staticmethod
+    def resolve_tags(self, info, **kwargs):
+        if "name" in kwargs:
+            name = kwargs['name']
+            return TagModel.objects.filter(name__contains=name)
+        else:
+            return TagModel.objects.all()
+
+    @staticmethod
+    def resolve_tag(self, info, **kwargs):
+        _id = kwargs.get('id')
+        try:
+            return TagModel.objects.get(pk=_id)
+        except TagModel.DoesNotExist:
+            return ErrorType(error_code="NOT_EXIST", error_message="Tag does not exist...")
