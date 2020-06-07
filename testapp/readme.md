@@ -286,9 +286,54 @@ class ProductVariationLoader(DataLoader):
         return Promise.resolve(result)
 ```
 
-# 5 Others
+# 5 Many to Many relationship
 
-## 5.1 DB SQL Logging
+## 5.1 Define relationship
+
+```python
+class TagModel(models.Model):
+    name = models.CharField(max_length=100, blank=False)
+    description = models.CharField(max_length=100, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class ProductModel(models.Model):
+    # .....
+    tags = models.ManyToManyField(TagModel, related_name="products")
+
+    def __str__(self):
+        return self.name
+``` 
+
+## 5.2 Many to Many Table
+
+Many to many table is represented in model:
+* TagModel.products.through
+* ProductModel.tags.through
+
+The sample query like below:
+* TagModel.products.through.filter(productmodel_id__in=[list of product id])
+* The result is the relation objects of (productmodel_id, tagmodel_id)
+
+## 5.3 Tags manipulation
+
+Query tags:
+* ProductModel.objects.get(pk=product_id).tags.all()
+
+Add tag to product:
+* product.tags.add(tag)
+* product.tags.add(*tags)
+
+Remove tag from product:
+* product.tags.remove(tag)
+* product.tags.remove(*tags)
+
+
+# 6 Others
+
+## 6.1 DB SQL Logging
 
 Add the following snippet to settings.py
 
