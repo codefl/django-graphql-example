@@ -66,3 +66,19 @@ class CategoryProductLoader(DataLoader):
         # Construct the result (same order as the request "category_ids")
         result = [products_by_category_ids.get(category_id, []) for category_id in category_ids]
         return Promise.resolve(result)
+
+
+# Load tag by product id
+class ProductTagLoader(DataLoader):
+
+    def batch_load_fn(self, product_ids):
+        # Build the defaultdict to make sure it returns None when the product id does not exist
+        tags_by_product_ids = defaultdict(list)
+
+        # Query the database
+        for tag in ProductModel.tags.through.objects.filter(product_id__in=product_ids).iterator():
+            tags_by_product_ids[tag.product_id].append(tag)
+
+        # Construct the result (same order as the request "product_ids")
+        result = [tags_by_product_ids.get(product_id, []) for product_id in product_ids]
+        return Promise.resolve(result)

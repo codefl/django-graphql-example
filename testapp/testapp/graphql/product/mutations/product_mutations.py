@@ -90,7 +90,7 @@ class UpdateProductMutation(graphene.Mutation):
 
 class DeleteProductMutation(graphene.Mutation):
     class Arguments:
-        product_id = graphene.ID()
+        product_id = graphene.Int(required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(ProductResponseType)
@@ -110,3 +110,30 @@ class DeleteProductMutation(graphene.Mutation):
             r = ErrorType(error_code="PRODUCT_NOT_DELETE",
                           error_message="Product with id {} cannot be deleted due to dependencies.".format(product_id))
             return UpdateProductMutation(ok=False, response=r)
+
+
+class ProductAddTagMutation(graphene.Mutation):
+
+    class Arguments:
+        product_id = graphene.Int(required=True)
+        tag_ids = graphene.List(graphene.Int, required=True)
+
+    ok = graphene.Boolean()
+    response = graphene.Field(ErrorType)
+
+    @staticmethod
+    def mutate(root, info, product_id, tag_ids):
+        pass
+
+
+class ProductRemoveTagMutation(graphene.Mutation):
+    class Arguments:
+        product_id = graphene.Int(required=True)
+        tag_ids = graphene.List(graphene.Int, required=True)
+
+    ok = graphene.Boolean()
+    response = graphene.Field(ErrorType)
+
+    @staticmethod
+    def mutate(root, info, product_id, tag_ids):
+        pass

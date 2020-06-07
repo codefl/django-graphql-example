@@ -1,5 +1,5 @@
 import graphene
-from .product_types import ProductType, CategoryType, ProductVariationType
+from .product_types import ProductType, CategoryType, ProductVariationType, TagType
 from ...common.common_types import ErrorType
 
 
@@ -16,3 +16,8 @@ class CategoryResponseType(graphene.Union):
 class ProductVariationResponseType(graphene.Union):
     class Meta:
         types = (ProductVariationType, ErrorType)
+
+
+class TagResponseType(graphene.Union):
+    class Meta:
+        types = (TagType, ErrorType)
