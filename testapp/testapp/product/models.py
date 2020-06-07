@@ -16,7 +16,7 @@ class CategoryModel(MPTTModel):
 
 class TagModel(models.Model):
     name = models.CharField(max_length=100, blank=False)
-    description = models.CharField(max_length=100, blank=True)
+    description = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -24,7 +24,7 @@ class TagModel(models.Model):
 
 class ProductModel(models.Model):
     name = models.CharField(max_length=100, blank=False)
-    description = models.CharField(max_length=100, blank=True)
+    description = models.CharField(max_length=100, null=True, blank=True)
 
     category = models.ForeignKey(CategoryModel, on_delete=models.DO_NOTHING, related_name='products',
                                  null=False, blank=False)
@@ -39,7 +39,7 @@ class ProductVariationModel(models.Model):
                                 null=False, blank=False)
     sku_no = models.CharField(max_length=100, blank=False)
     variation = models.CharField(max_length=100, blank=False)
-    description = models.CharField(max_length=100, blank=True)
+    description = models.CharField(max_length=100, null=True, blank=True)
 
     currency = models.CharField(max_length=8, blank=False, choices=Currency.choices())
     price = models.IntegerField(null=False)
