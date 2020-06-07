@@ -13,15 +13,15 @@ class ProductType(DjangoObjectType):
 
     @staticmethod
     def resolve_category(root, info, **kwargs):
-        return info.context.categories_by_category_id_loader.load(root.category_id)
+        return info.context.appcontext.categories_by_category_id_loader.load(root.category_id)
 
     @staticmethod
     def resolve_variations(root, info, **kwargs):
-        return info.context.variations_by_product_id_loader.load(root.id)
+        return info.context.appcontext.variations_by_product_id_loader.load(root.id)
 
     @staticmethod
     def resolve_tags(root, info, **kwargs):
-        return info.context.tags_by_product_id_loader.load(root.id)
+        return info.context.appcontext.tags_by_product_id_loader.load(root.id)
 
 
 class CategoryType(DjangoObjectType):
@@ -30,7 +30,7 @@ class CategoryType(DjangoObjectType):
 
     @staticmethod
     def resolve_products(root, info, **kwargs):
-        return info.context.products_by_category_id_loader.load(root.id)
+        return info.context.appcontext.products_by_category_id_loader.load(root.id)
 
 
 class ProductVariationType(DjangoObjectType):
@@ -39,7 +39,7 @@ class ProductVariationType(DjangoObjectType):
 
     @staticmethod
     def resolve_product(root, info, **kwargs):
-        return info.context.products_by_product_id_loader.load(root.product_id)
+        return info.context.appcontext.products_by_product_id_loader.load(root.product_id)
 
 
 class TagType(DjangoObjectType):

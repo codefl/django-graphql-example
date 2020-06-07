@@ -5,4 +5,6 @@ from .context import GQLContext
 class CustomGraphQLView(GraphQLView):
 
     def get_context(self, request):
-        return GQLContext(request)
+        context = super().get_context(request)
+        setattr(context, 'appcontext', GQLContext(request))
+        return context
