@@ -51,7 +51,7 @@ class CreateProductVariationMutation(graphene.Mutation):
                 pv = ProductVariationModel(variation=product_variation_data.variation,
                                            sku_no=product_variation_data.sku_no,
                                            description=product_variation_data.description,
-                                           currency=ModelCurrency[product_variation_data.currency],
+                                           currency=product_variation_data.currency,
                                            price=product_variation_data.price,
                                            product=p)
                 pv.save()
@@ -83,7 +83,7 @@ class UpdateProductVariationMutation(graphene.Mutation):
             if product_variation_data.description is not None:
                 pv.description = product_variation_data.description
             if product_variation_data.currency is not None:
-                pv.currency = ModelCurrency[product_variation_data.currency]
+                pv.currency = product_variation_data.currency
             if product_variation_data.price is not None:
                 pv.price = product_variation_data.price
 
