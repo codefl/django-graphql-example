@@ -8,16 +8,16 @@ from django.db import models
 ###########################################################################
 # DTO & Response
 ###########################################################################
-class ProductInput(graphene.InputObjectType):
+class ProductCreateInput(graphene.InputObjectType):
     name = graphene.String(required=True)
-    description = graphene.String(required=False)
-    category_id = graphene.Int(required=False)
+    description = graphene.String()
+    category_id = graphene.Int()
 
 
 class ProductUpdateInput(graphene.InputObjectType):
-    name = graphene.String(required=False)
-    description = graphene.String(required=False)
-    category_id = graphene.Int(required=False)
+    name = graphene.String()
+    description = graphene.String()
+    category_id = graphene.Int()
 
 
 ###########################################################################
@@ -25,7 +25,7 @@ class ProductUpdateInput(graphene.InputObjectType):
 ###########################################################################
 class CreateProductMutation(graphene.Mutation):
     class Arguments:
-        product_data = graphene.Argument(ProductInput, required=True)
+        product_data = graphene.Argument(ProductCreateInput, required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(ProductResponseType)
@@ -55,7 +55,7 @@ class CreateProductMutation(graphene.Mutation):
 
 class UpdateProductMutation(graphene.Mutation):
     class Arguments:
-        product_data = graphene.Argument(ProductInput, required=True)
+        product_data = graphene.Argument(ProductUpdateInput, required=True)
         product_id = graphene.ID()
 
     ok = graphene.Boolean()

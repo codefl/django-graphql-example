@@ -3,16 +3,15 @@ from ..types.response_types import ProductVariationResponseType
 from ...common.common_types import ErrorType
 from ..types import Currency
 from ....product.models import ProductModel, ProductVariationModel
-from ....product import Currency as ModelCurrency
 
 
 ###########################################################################
 # DTO & Response
 ###########################################################################
-class ProductVariationInput(graphene.InputObjectType):
+class ProductVariationCreateInput(graphene.InputObjectType):
     sku_no = graphene.String(required=True)
     variation = graphene.String(required=True)
-    description = graphene.String(required=False)
+    description = graphene.String()
     currency = Currency(required=True)
     price = graphene.Int(required=True)
     product_id = graphene.Int(required=True)
@@ -31,7 +30,7 @@ class ProductVariationUpdateInput(graphene.InputObjectType):
 ###########################################################################
 class CreateProductVariationMutation(graphene.Mutation):
     class Arguments:
-        product_variation_data = graphene.Argument(ProductVariationInput, required=True)
+        product_variation_data = graphene.Argument(ProductVariationCreateInput, required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(ProductVariationResponseType)

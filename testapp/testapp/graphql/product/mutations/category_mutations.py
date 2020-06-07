@@ -4,15 +4,19 @@ from ...common.common_types import ErrorType
 from ....product.models import CategoryModel
 
 
-class CategoryInput(graphene.InputObjectType):
+class CategoryCreateInput(graphene.InputObjectType):
     name = graphene.String(required=True)
-    parent_id = graphene.ID()
+    parent_id = graphene.Int()
+
+
+class CategoryUpdateInput(graphene.InputObjectType):
+    name = graphene.String()
 
 
 class CreateCategoryMutation(graphene.Mutation):
 
     class Arguments:
-        category_data = graphene.Argument(CategoryInput)
+        category_data = graphene.Argument(CategoryCreateInput, required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(CategoryResponseType)
@@ -42,24 +46,26 @@ class CreateCategoryMutation(graphene.Mutation):
 class UpdateCategoryMutation(graphene.Mutation):
 
     class Arguments:
-        category_id = graphene.ID()
-        category_name = graphene.Argument(graphene.String, required=True)
+        category_id = graphene.Int(required=True)
+        category_data = graphene.Argument(CategoryUpdateInput, required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(CategoryResponseType)
 
     @staticmethod
-    def mutate(root, info, category_id, category_name):
-        cnt = CategoryModel.objects.filter(name__exact=category_name).count()
-        if cnt > 0:
-            r = ErrorType(error_code="DUPLICATE_CATEGORY",
-                          error_message="Category with name {} already exists".format(category_name))
+    def mutate(root, info, category_id, category_data):
+        if category_data.name is not None:
+            cnt = CategoryModel.objects.filter(name__exact=category_data.name).count()
+            if cnt > 0:
+                r = ErrorType(error_code="DUPLICATE_CATEGORY",
+                              error_message="Category with name {} already exists".format(category_name))
 
-            return UpdateCategoryMutation(ok=False, response=r)
+                return UpdateCategoryMutation(ok=False, response=r)
 
         try:
             c = CategoryModel.objects.get(pk=category_id)
-            c.name = category_name
+            if category_data.name is not None:
+                c.name = category_data.name
             c.save()
             return UpdateCategoryMutation(ok=True, response=c)
         except CategoryModel.DoesNotExist:
@@ -72,7 +78,7 @@ class UpdateCategoryMutation(graphene.Mutation):
 class DeleteCategoryMutation(graphene.Mutation):
 
     class Arguments:
-        category_id = graphene.ID()
+        category_id = graphene.Int(required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(CategoryResponseType)
