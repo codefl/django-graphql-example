@@ -2,6 +2,7 @@ import graphene
 from ..types.response_types import TagResponseType
 from ...common.common_types import ErrorType
 from ....product.models import TagModel, ProductModel
+from graphql_jwt.decorators import staff_member_required
 
 
 class TagCreateInput(graphene.InputObjectType):
@@ -23,6 +24,7 @@ class CreateTagMutation(graphene.Mutation):
     response = graphene.Field(TagResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, tag_data):
         cnt = TagModel.objects.filter(name__exact=tag_data.name).count()
         if cnt > 0:
@@ -45,6 +47,7 @@ class UpdateTagMutation(graphene.Mutation):
     response = graphene.Field(TagResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, tag_id, tag_data):
         if tag_data.name is not None:
             cnt = TagModel.objects.filter(name__exact=tag_data.name).count()
@@ -77,6 +80,7 @@ class DeleteTagMutation(graphene.Mutation):
     response = graphene.Field(TagResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, tag_id):
         try:
             cnt = ProductModel.objects.filter(tags__id=tag_id).count()

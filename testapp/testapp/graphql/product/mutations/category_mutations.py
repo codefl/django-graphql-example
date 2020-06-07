@@ -2,6 +2,7 @@ import graphene
 from ..types.response_types import CategoryResponseType
 from ...common.common_types import ErrorType
 from ....product.models import CategoryModel
+from graphql_jwt.decorators import staff_member_required
 
 
 class CategoryCreateInput(graphene.InputObjectType):
@@ -22,6 +23,7 @@ class CreateCategoryMutation(graphene.Mutation):
     response = graphene.Field(CategoryResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, category_data):
         cnt = CategoryModel.objects.filter(name__exact=category_data.name).count()
         if cnt > 0:
@@ -53,6 +55,7 @@ class UpdateCategoryMutation(graphene.Mutation):
     response = graphene.Field(CategoryResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, category_id, category_data):
         if category_data.name is not None:
             cnt = CategoryModel.objects.filter(name__exact=category_data.name).count()
@@ -84,6 +87,7 @@ class DeleteCategoryMutation(graphene.Mutation):
     response = graphene.Field(CategoryResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, category_id):
         try:
             c = CategoryModel.objects.get(pk=category_id)

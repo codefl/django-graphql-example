@@ -3,6 +3,7 @@ from ..types.response_types import ProductVariationResponseType
 from ...common.common_types import ErrorType
 from ..types import Currency
 from ....product.models import ProductModel, ProductVariationModel
+from graphql_jwt.decorators import staff_member_required
 
 
 ###########################################################################
@@ -36,6 +37,7 @@ class CreateProductVariationMutation(graphene.Mutation):
     response = graphene.Field(ProductVariationResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, product_variation_data):
         cnt = ProductVariationModel.objects.filter(sku_no__exact=product_variation_data.sku_no).count()
 
@@ -71,6 +73,7 @@ class UpdateProductVariationMutation(graphene.Mutation):
     response = graphene.Field(ProductVariationResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, product_variation_id, product_variation_data):
         try:
             pv = ProductVariationModel.objects.get(pk=product_variation_id)
@@ -103,6 +106,7 @@ class DeleteProductVariationMutation(graphene.Mutation):
     response = graphene.Field(ProductVariationResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, product_variation_id):
         try:
             pv = ProductVariationModel.objects.get(pk=product_variation_id)

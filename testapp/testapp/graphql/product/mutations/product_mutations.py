@@ -3,6 +3,7 @@ from ..types.response_types import ProductResponseType
 from ...common.common_types import ErrorType
 from ....product.models import ProductModel, CategoryModel, TagModel
 from django.db import models
+from graphql_jwt.decorators import staff_member_required
 
 
 ###########################################################################
@@ -31,6 +32,7 @@ class CreateProductMutation(graphene.Mutation):
     response = graphene.Field(ProductResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, product_data):
         cnt = ProductModel.objects.filter(name__exact=product_data.name).count()
 
@@ -62,6 +64,7 @@ class UpdateProductMutation(graphene.Mutation):
     response = graphene.Field(ProductResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, product_id, product_data):
         try:
             product = ProductModel.objects.get(pk=product_id)
@@ -96,6 +99,7 @@ class DeleteProductMutation(graphene.Mutation):
     response = graphene.Field(ProductResponseType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, product_id):
         try:
             product = ProductModel.objects.get(pk=product_id)
@@ -117,10 +121,11 @@ class ProductAddTagMutation(graphene.Mutation):
         product_id = graphene.Int(required=True)
         tag_ids = graphene.List(graphene.Int, required=True)
 
-    ok = graphene.Boolean()
+    ok = graphene.Boolean(required=True)
     response = graphene.Field(ErrorType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, product_id, tag_ids):
         try:
             product = ProductModel.objects.get(pk=product_id)
@@ -153,10 +158,11 @@ class ProductRemoveTagMutation(graphene.Mutation):
         product_id = graphene.Int(required=True)
         tag_ids = graphene.List(graphene.Int, required=True)
 
-    ok = graphene.Boolean()
+    ok = graphene.Boolean(required=True)
     response = graphene.Field(ErrorType)
 
     @staticmethod
+    @staff_member_required
     def mutate(root, info, product_id, tag_ids):
         try:
             product = ProductModel.objects.get(pk=product_id)

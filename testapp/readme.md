@@ -331,9 +331,131 @@ Remove tag from product:
 * product.tags.remove(*tags)
 
 
-# 6 Others
+# 6 Add JWT Support
 
-## 6.1 DB SQL Logging
+## 6.1 Install JWT Support
+
+```shell script
+$ pip install django-graphql-jwt
+```
+
+## 6.2 Enable JWT Support
+
+### 6.2.1 Update settings.py with the following changes
+
+```python
+# Add AuthenticationMiddleware middleware to your MIDDLEWARE settings
+MIDDLEWARE = [
+    #...
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    #...
+]
+
+# Add JSONWebTokenMiddleware middleware to your GRAPHENE settings:
+GRAPHENE = {
+    'SCHEMA': 'mysite.myschema.schema',
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
+}
+
+# Add JSONWebTokenBackend backend to your AUTHENTICATION_BACKENDS
+AUTHENTICATION_BACKENDS = [
+    'graphql_jwt.backends.JSONWebTokenBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+```
+
+# 6.2.2 Add JWT mutations
+
+Below are the codes to add JWT mutation. It also customize the ObtainJSONWebToken mutation to return additional user info.
+
+```python
+# Create a new file jwt_mutations.py
+
+import graphene
+import graphql_jwt
+
+
+class UserType(graphene.ObjectType):
+    user_id = graphene.Field(graphene.String, required=True)
+    first_name = graphene.Field(graphene.String)
+    last_name = graphene.Field(graphene.String)
+    email = graphene.Field(graphene.String, required=True)
+
+
+class ObtainJSONWebToken(graphql_jwt.JSONWebTokenMutation):
+    user = graphene.Field(UserType, required=True)
+
+    @classmethod
+    def resolve(cls, root, info, **kwargs):
+        _user = info.context.user
+        user = UserType(user_id=_user.id, first_name=_user.first_name,
+                        last_name=_user.last_name, email=_user.email)
+        return cls(user=user)
+
+
+class JwtMutations(graphene.ObjectType):
+    token_auth = ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
+```
+
+Add the mutations to schema
+
+```python
+class Mutation (
+    # ...
+    JwtMutations,
+):
+    pass
+
+schema = graphene.Schema(query=Query, mutation=Mutation)
+```
+
+## 6.3 Add decorators to mutations or resolvers
+
+```python
+class CreateProductMutation(graphene.Mutation):
+    class Arguments:
+        product_data = graphene.Argument(ProductCreateInput, required=True)
+
+    ok = graphene.Boolean()
+    response = graphene.Field(ProductResponseType)
+
+    @staticmethod
+    @staff_member_required
+    def mutate(root, info, product_data):
+        pass
+```
+
+```python
+class TagQueries(graphene.ObjectType):
+    tags = graphene.List(TagType, name=graphene.Argument(graphene.String))
+    tag = graphene.Field(TagResponseType, id=graphene.Argument(graphene.Int, required=True))
+
+    @staticmethod
+    @staff_member_required
+    def resolve_tags(self, info, **kwargs):
+        pass
+```
+
+## 6.4 Decorators
+* @login_required
+* @user_passes_test(lambda user: ...)
+* @permission_required(permissions)
+* @staff_member_required
+* @superuser_required
+
+[Decorator Document](https://django-graphql-jwt.domake.io/en/latest/decorators.html)
+
+## 6.5 Settings
+
+[Settings Document](https://django-graphql-jwt.domake.io/en/latest/settings.html)
+
+# 7 Others
+
+## 7.1 DB SQL Logging
 
 Add the following snippet to settings.py
 
