@@ -1,7 +1,7 @@
 import graphene
-from .types.product_types import ProductType, ProductResponseType, ErrorType
-from .types.product_types import ProductVariationType
-from .types.product_types import CategoryType, CategoryResponseType
+from .types.product_types import ProductType, CategoryType, ProductVariationType
+from .types.response_types import ProductResponseType, CategoryResponseType
+from ..common.common_types import ErrorType
 from ...product.models import ProductModel, CategoryModel, ProductVariationModel
 
 

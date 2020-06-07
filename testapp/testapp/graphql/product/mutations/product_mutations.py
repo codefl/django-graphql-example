@@ -1,7 +1,7 @@
 import graphene
 from ..types.response_types import ProductResponseType
 from ...common.common_types import ErrorType
-from ....product.models import ProductModel
+from ....product.models import ProductModel, CategoryModel
 from django.db import models
 
 
@@ -11,7 +11,13 @@ from django.db import models
 class ProductInput(graphene.InputObjectType):
     name = graphene.String(required=True)
     description = graphene.String(required=False)
-    sku_no = graphene.String(required=True)
+    category_id = graphene.Int(required=False)
+
+
+class ProductUpdateInput(graphene.InputObjectType):
+    name = graphene.String(required=False)
+    description = graphene.String(required=False)
+    category_id = graphene.Int(required=False)
 
 
 ###########################################################################
@@ -26,15 +32,23 @@ class CreateProductMutation(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, product_data):
-        cnt = ProductModel.objects.filter(sku_no__exact=product_data.sku_no).count()
+        cnt = ProductModel.objects.filter(name__exact=product_data.name).count()
 
         if cnt > 0:
             r = ErrorType(error_code="DUPLICATE_PRODUCT",
-                          error_message="Product with sku_no {} already exists".format(product_data.sku_no))
-
+                          error_message="Product {} already exists".format(product_data.name))
             return CreateProductMutation(ok=False, response=r)
         else:
-            p = ProductModel(name=product_data.name, description=product_data.description, sku_no=product_data.sku_no)
+            category = None
+            if product_data.category_id is not None:
+                try:
+                    category = CategoryModel.objects.get(pk=product_data.category_id)
+                except CategoryModel.DoesNotExist:
+                    r = ErrorType(error_code="CATEGORY_NOT_EXIST",
+                                  error_message="Category {} does not exist".format(product_data.category_id))
+                    return CreateProductMutation(ok=False, response=r)
+
+            p = ProductModel(name=product_data.name, description=product_data.description, category=category)
             p.save()
             return CreateProductMutation(ok=True, response=p)
 
@@ -42,7 +56,7 @@ class CreateProductMutation(graphene.Mutation):
 class UpdateProductMutation(graphene.Mutation):
     class Arguments:
         product_data = graphene.Argument(ProductInput, required=True)
-        product_id = graphene.Argument(graphene.ID(), required=True)
+        product_id = graphene.ID()
 
     ok = graphene.Boolean()
     response = graphene.Field(ProductResponseType)
@@ -52,12 +66,19 @@ class UpdateProductMutation(graphene.Mutation):
         try:
             product = ProductModel.objects.get(pk=product_id)
 
-            if product_data.sku_no is not None:
-                product.sku_no = product_data.sku_no
             if product_data.name is not None:
                 product.name = product_data.name
             if product_data.description is not None:
                 product.description = product_data.description
+            if product_data.category_id is not None:
+                try:
+                    category = CategoryModel.objects.get(pk=product_data.category_id)
+                    product.category = category
+                except CategoryModel.DoesNotExist:
+                    r = ErrorType(error_code="CATEGORY_NOT_EXIST",
+                                  error_message="Category {} does not exist".format(product_data.category_id))
+                    return CreateProductMutation(ok=False, response=r)
+
             product.save()
 
             return CreateProductMutation(ok=True, response=product)
@@ -69,7 +90,7 @@ class UpdateProductMutation(graphene.Mutation):
 
 class DeleteProductMutation(graphene.Mutation):
     class Arguments:
-        product_id = graphene.Argument(graphene.ID(), required=True)
+        product_id = graphene.ID()
 
     ok = graphene.Boolean()
     response = graphene.Field(ProductResponseType)
@@ -79,6 +100,7 @@ class DeleteProductMutation(graphene.Mutation):
         try:
             product = ProductModel.objects.get(pk=product_id)
             product.delete()
+            product.id = product_id
             return CreateProductMutation(ok=True, response=product)
         except ProductModel.DoesNotExist:
             r = ErrorType(error_code="PRODUCT_NOT_EXIST",

@@ -4,15 +4,15 @@ from ...common.common_types import ErrorType
 from ....product.models import CategoryModel
 
 
-class CategoryInput(graphene.ObjectType):
+class CategoryInput(graphene.InputObjectType):
     name = graphene.String(required=True)
-    parent_id = graphene.ID(required=False)
+    parent_id = graphene.ID()
 
 
 class CreateCategoryMutation(graphene.Mutation):
 
     class Arguments:
-        category_data = graphene.Field(CategoryInput)
+        category_data = graphene.Argument(CategoryInput)
 
     ok = graphene.Boolean()
     response = graphene.Field(CategoryResponseType)
@@ -27,7 +27,7 @@ class CreateCategoryMutation(graphene.Mutation):
             return CreateCategoryMutation(ok=False, response=r)
 
         parent = None
-        if category_data.parent is not None:
+        if category_data.parent_id is not None:
             try:
                 parent = CategoryModel.objects.get(pk=category_data.parent_id)
             except CategoryModel.DoesNotExist:
@@ -42,8 +42,8 @@ class CreateCategoryMutation(graphene.Mutation):
 class UpdateCategoryMutation(graphene.Mutation):
 
     class Arguments:
-        category_id = graphene.Field(graphene.ID(), required=True)
-        category_name = graphene.Field(graphene.String, required=True)
+        category_id = graphene.ID()
+        category_name = graphene.Argument(graphene.String, required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(CategoryResponseType)
@@ -72,7 +72,7 @@ class UpdateCategoryMutation(graphene.Mutation):
 class DeleteCategoryMutation(graphene.Mutation):
 
     class Arguments:
-        category_id = graphene.Field(graphene.ID(), required=True)
+        category_id = graphene.ID()
 
     ok = graphene.Boolean()
     response = graphene.Field(CategoryResponseType)
@@ -82,6 +82,7 @@ class DeleteCategoryMutation(graphene.Mutation):
         try:
             c = CategoryModel.objects.get(pk=category_id)
             c.delete()
+            c.id = category_id
             return DeleteCategoryMutation(ok=True, response=c)
         except CategoryModel.DoesNotExist:
             r = ErrorType(error_code="CATEGORY_NOT_EXIST",
