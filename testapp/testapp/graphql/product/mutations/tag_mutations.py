@@ -79,7 +79,7 @@ class DeleteTagMutation(graphene.Mutation):
     @staticmethod
     def mutate(root, info, tag_id):
         try:
-            cnt = ProductModel.tags.through.filter(tag_id=tag_id).count()
+            cnt = ProductModel.objects.filter(tags__id=tag_id).count()
             if cnt > 0:
                 r = ErrorType(error_code="TAG_IN_USE",
                               error_message="Tag {} still in use. Cannot delete.".format(tag_id))
