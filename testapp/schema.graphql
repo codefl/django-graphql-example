@@ -1,0 +1,242 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+input CategoryCreateInput {
+  name: String!
+  parentId: Int
+}
+
+union CategoryResponseType = CategoryType | ErrorType
+
+type CategoryType {
+  id: ID!
+  name: String!
+  parent: CategoryType
+  lft: Int!
+  rght: Int!
+  treeId: Int!
+  level: Int!
+  children: [CategoryType!]!
+  products: [ProductType!]!
+}
+
+input CategoryUpdateInput {
+  name: String
+}
+
+type CreateCategoryMutation {
+  ok: Boolean
+  response: CategoryResponseType
+}
+
+type CreateProductMutation {
+  ok: Boolean
+  response: ProductResponseType
+}
+
+type CreateProductVariationMutation {
+  ok: Boolean
+  response: ProductVariationResponseType
+}
+
+type CreateTagMutation {
+  ok: Boolean
+  response: TagResponseType
+}
+
+enum Currency {
+  USD
+  CAD
+  EUR
+}
+
+type DeleteCategoryMutation {
+  ok: Boolean
+  response: CategoryResponseType
+}
+
+type DeleteProductMutation {
+  ok: Boolean
+  response: ProductResponseType
+}
+
+type DeleteProductVariationMutation {
+  ok: Boolean
+  response: ProductVariationResponseType
+}
+
+type DeleteTagMutation {
+  ok: Boolean
+  response: TagResponseType
+}
+
+type ErrorType {
+  errorCode: String
+  errorMessage: String
+}
+
+scalar GenericScalar
+
+type Mutation {
+  tokenAuth(username: String!, password: String!): ObtainJSONWebToken
+  verifyToken(token: String): Verify
+  refreshToken(token: String): Refresh
+  createTag(tagData: TagCreateInput!): CreateTagMutation
+  updateTag(tagData: TagUpdateInput!, tagId: Int!): UpdateTagMutation
+  deleteTag(tagId: Int!): DeleteTagMutation
+  createProductVariation(productVariationData: ProductVariationCreateInput!): CreateProductVariationMutation
+  updateProductVariation(productVariationData: ProductVariationUpdateInput!, productVariationId: ID): UpdateProductVariationMutation
+  deleteProductVariation(productVariationId: ID): DeleteProductVariationMutation
+  createCategory(categoryData: CategoryCreateInput!): CreateCategoryMutation
+  updateCategory(categoryData: CategoryUpdateInput!, categoryId: Int!): UpdateCategoryMutation
+  deleteCategory(categoryId: Int!): DeleteCategoryMutation
+  createProduct(productData: ProductCreateInput!): CreateProductMutation
+  updateProduct(productData: ProductUpdateInput!, productId: ID): UpdateProductMutation
+  deleteProduct(productId: Int!): DeleteProductMutation
+  addProductTags(productId: Int!, tagIds: [Int]!): ProductAddTagMutation
+  removeProductTags(productId: Int!, tagIds: [Int]!): ProductRemoveTagMutation
+}
+
+type ObtainJSONWebToken {
+  payload: GenericScalar!
+  refreshExpiresIn: Int!
+  user: UserType!
+  token: String!
+}
+
+type ProductAddTagMutation {
+  ok: Boolean!
+  response: ErrorType
+}
+
+input ProductCreateInput {
+  name: String!
+  description: String
+  categoryId: Int
+}
+
+type ProductRemoveTagMutation {
+  ok: Boolean!
+  response: ErrorType
+}
+
+union ProductResponseType = ProductType | ErrorType
+
+type ProductType {
+  id: ID!
+  name: String!
+  description: String
+  category: CategoryType!
+  tags: [TagType!]!
+  variations: [ProductVariationType!]!
+}
+
+input ProductUpdateInput {
+  name: String
+  description: String
+  categoryId: Int
+}
+
+input ProductVariationCreateInput {
+  skuNo: String!
+  variation: String!
+  description: String
+  currency: Currency!
+  price: Int!
+  productId: Int!
+}
+
+enum ProductVariationModelCurrency {
+  USD
+  CAD
+  EUR
+}
+
+union ProductVariationResponseType = ProductVariationType | ErrorType
+
+type ProductVariationType {
+  id: ID!
+  product: ProductType!
+  skuNo: String!
+  variation: String!
+  description: String
+  currency: ProductVariationModelCurrency!
+  price: Int!
+}
+
+input ProductVariationUpdateInput {
+  skuNo: String
+  variation: String
+  description: String
+  currency: Currency
+  price: Int
+}
+
+type Query {
+  tags(name: String): [TagType]
+  tag(id: Int!): TagResponseType
+  categories(name: String): [CategoryType]
+  category(id: Int!): CategoryResponseType
+  productVariations(productId: Int!): [ProductVariationType]
+  productVariation(id: Int!): ProductVariationType
+  products(name: String): [ProductType]
+  product(id: Int!): ProductResponseType
+}
+
+type Refresh {
+  payload: GenericScalar!
+  refreshExpiresIn: Int!
+  token: String!
+}
+
+input TagCreateInput {
+  name: String!
+  description: String
+}
+
+union TagResponseType = TagType | ErrorType
+
+type TagType {
+  id: ID!
+  name: String!
+  description: String
+  products: [ProductType!]!
+}
+
+input TagUpdateInput {
+  name: String
+  description: String
+}
+
+type UpdateCategoryMutation {
+  ok: Boolean
+  response: CategoryResponseType
+}
+
+type UpdateProductMutation {
+  ok: Boolean
+  response: ProductResponseType
+}
+
+type UpdateProductVariationMutation {
+  ok: Boolean
+  response: ProductVariationResponseType
+}
+
+type UpdateTagMutation {
+  ok: Boolean
+  response: TagResponseType
+}
+
+type UserType {
+  userId: String!
+  firstName: String
+  lastName: String
+  email: String!
+}
+
+type Verify {
+  payload: GenericScalar!
+}
