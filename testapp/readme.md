@@ -489,3 +489,10 @@ LOGGING = {
     }
 }
 ```
+
+## 7.2 Export GraphQL Schema
+
+```python
+$ python3 ./manage.py graphql_schema --schema testapp.graphql.schemas.schema --out schema.graphql
+```
+
