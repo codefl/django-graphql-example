@@ -492,7 +492,32 @@ LOGGING = {
 
 ## 7.2 Export GraphQL Schema
 
-```python
+```shellscript
 $ python3 ./manage.py graphql_schema --schema testapp.graphql.schemas.schema --out schema.graphql
 ```
 
+## 7.3 Allow Cross Origin Access (Support pre-flight)
+
+```shell script
+$ pip install 'django-cors-headers'
+```
+
+```python
+# Add the following to settings.py
+MIDDLEWARE = [
+    # ...
+    'corsheaders.middleware.CorsMiddleware',
+    # ...
+]
+
+CORS_ORIGIN_ALLOW_ALL = True   # Change to False to use the whitelist
+CORS_ORIGIN_WHITELIST = []
+CORS_ALLOW_METHODS = (
+        'GET',
+        'POST',
+        'PUT',
+        'PATCH',
+        'DELETE',
+        'OPTIONS'
+    )
+```
