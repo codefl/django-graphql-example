@@ -10,6 +10,7 @@ from ....product.models import ProductModel, CategoryModel, ProductVariationMode
 class ProductType(DjangoObjectType):
     class Meta:
         model = ProductModel
+        interfaces = (graphene.Node,)
 
     @staticmethod
     def resolve_category(root, info, **kwargs):
@@ -27,6 +28,7 @@ class ProductType(DjangoObjectType):
 class CategoryType(DjangoObjectType):
     class Meta:
         model = CategoryModel
+        interfaces = (graphene.Node,)
 
     @staticmethod
     def resolve_products(root, info, **kwargs):
@@ -36,6 +38,7 @@ class CategoryType(DjangoObjectType):
 class ProductVariationType(DjangoObjectType):
     class Meta:
         model = ProductVariationModel
+        interfaces = (graphene.Node,)
 
     @staticmethod
     def resolve_product(root, info, **kwargs):
@@ -45,3 +48,4 @@ class ProductVariationType(DjangoObjectType):
 class TagType(DjangoObjectType):
     class Meta:
         model = TagModel
+        interfaces = (graphene.Node,)
