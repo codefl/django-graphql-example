@@ -1,0 +1,369 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+union CategoryResponseType = CategoryType | ErrorType
+
+type CategoryType implements Node {
+  id: ID!
+  name: String!
+  parent: CategoryType
+  lft: Int!
+  rght: Int!
+  treeId: Int!
+  level: Int!
+  children(before: String, after: String, first: Int, last: Int): CategoryTypeConnection!
+  products(before: String, after: String, first: Int, last: Int): ProductTypeConnection!
+}
+
+type CategoryTypeConnection {
+  pageInfo: PageInfo!
+  edges: [CategoryTypeEdge]!
+}
+
+type CategoryTypeEdge {
+  node: CategoryType
+  cursor: String!
+}
+
+input CategoryUpdateInput {
+  name: String
+}
+
+input CreateCategoryMutationInput {
+  clientMutationId: String
+}
+
+type CreateCategoryMutationPayload {
+  ok: Boolean
+  response: CategoryResponseType
+  clientMutationId: String
+}
+
+input CreateProductMutationInput {
+  productData: ProductCreateInput!
+  clientMutationId: String
+}
+
+type CreateProductMutationPayload {
+  ok: Boolean
+  response: ProductResponseType
+  clientMutationId: String
+}
+
+input CreateProductVariationMutationInput {
+  productId: ID!
+  productVariationData: ProductVariationCreateInput!
+  clientMutationId: String
+}
+
+type CreateProductVariationMutationPayload {
+  ok: Boolean
+  response: ProductVariationResponseType
+  clientMutationId: String
+}
+
+input CreateTagMutationInput {
+  tagData: TagCreateInput!
+  clientMutationId: String
+}
+
+type CreateTagMutationPayload {
+  ok: Boolean
+  response: TagResponseType
+  clientMutationId: String
+}
+
+enum Currency {
+  USD
+  CAD
+  EUR
+}
+
+input DeleteCategoryMutationInput {
+  clientMutationId: String
+}
+
+type DeleteCategoryMutationPayload {
+  ok: Boolean
+  response: CategoryResponseType
+  clientMutationId: String
+}
+
+input DeleteProductMutationInput {
+  productId: ID!
+  clientMutationId: String
+}
+
+type DeleteProductMutationPayload {
+  ok: Boolean
+  response: ProductResponseType
+  clientMutationId: String
+}
+
+input DeleteProductVariationMutationInput {
+  productVariationId: ID!
+  clientMutationId: String
+}
+
+type DeleteProductVariationMutationPayload {
+  ok: Boolean
+  response: ProductVariationResponseType
+  clientMutationId: String
+}
+
+input DeleteTagMutationInput {
+  tagId: ID!
+  clientMutationId: String
+}
+
+type DeleteTagMutationPayload {
+  ok: Boolean
+  response: TagResponseType
+  clientMutationId: String
+}
+
+type ErrorType {
+  errorCode: String
+  errorMessage: String
+}
+
+scalar GenericScalar
+
+type Mutation {
+  tokenAuth(username: String!, password: String!): ObtainJSONWebToken
+  verifyToken(token: String): Verify
+  refreshToken(token: String): Refresh
+  createTag(input: CreateTagMutationInput!): CreateTagMutationPayload
+  updateTag(input: UpdateTagMutationInput!): UpdateTagMutationPayload
+  deleteTag(input: DeleteTagMutationInput!): DeleteTagMutationPayload
+  createProductVariation(input: CreateProductVariationMutationInput!): CreateProductVariationMutationPayload
+  updateProductVariation(input: UpdateProductVariationMutationInput!): UpdateProductVariationMutationPayload
+  deleteProductVariation(input: DeleteProductVariationMutationInput!): DeleteProductVariationMutationPayload
+  createCategory(input: CreateCategoryMutationInput!): CreateCategoryMutationPayload
+  updateCategory(input: UpdateCategoryMutationInput!): UpdateCategoryMutationPayload
+  deleteCategory(input: DeleteCategoryMutationInput!): DeleteCategoryMutationPayload
+  createProduct(input: CreateProductMutationInput!): CreateProductMutationPayload
+  updateProduct(input: UpdateProductMutationInput!): UpdateProductMutationPayload
+  deleteProduct(input: DeleteProductMutationInput!): DeleteProductMutationPayload
+  addProductTags(input: ProductAddTagMutationInput!): ProductAddTagMutationPayload
+  removeProductTags(input: ProductRemoveTagMutationInput!): ProductRemoveTagMutationPayload
+}
+
+interface Node {
+  id: ID!
+}
+
+type ObtainJSONWebToken {
+  payload: GenericScalar!
+  refreshExpiresIn: Int!
+  user: UserType!
+  token: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+input ProductAddTagMutationInput {
+  productId: ID!
+  tagIds: [ID]!
+  clientMutationId: String
+}
+
+type ProductAddTagMutationPayload {
+  ok: Boolean!
+  response: ErrorType
+  clientMutationId: String
+}
+
+input ProductCreateInput {
+  name: String!
+  description: String
+  categoryId: ID
+}
+
+input ProductRemoveTagMutationInput {
+  productId: ID!
+  tagIds: [ID]!
+  clientMutationId: String
+}
+
+type ProductRemoveTagMutationPayload {
+  ok: Boolean!
+  response: ErrorType
+  clientMutationId: String
+}
+
+union ProductResponseType = ProductType | ErrorType
+
+type ProductType implements Node {
+  id: ID!
+  name: String!
+  description: String
+  category: CategoryType!
+  tags(before: String, after: String, first: Int, last: Int): TagTypeConnection!
+  variations(before: String, after: String, first: Int, last: Int): ProductVariationTypeConnection!
+}
+
+type ProductTypeConnection {
+  pageInfo: PageInfo!
+  edges: [ProductTypeEdge]!
+}
+
+type ProductTypeEdge {
+  node: ProductType
+  cursor: String!
+}
+
+input ProductUpdateInput {
+  name: String
+  description: String
+  categoryId: ID
+}
+
+input ProductVariationCreateInput {
+  skuNo: String!
+  variation: String!
+  description: String
+  currency: Currency!
+  price: Int!
+}
+
+enum ProductVariationModelCurrency {
+  USD
+  CAD
+  EUR
+}
+
+union ProductVariationResponseType = ProductVariationType | ErrorType
+
+type ProductVariationType implements Node {
+  id: ID!
+  product: ProductType!
+  skuNo: String!
+  variation: String!
+  description: String
+  currency: ProductVariationModelCurrency!
+  price: Int!
+}
+
+type ProductVariationTypeConnection {
+  pageInfo: PageInfo!
+  edges: [ProductVariationTypeEdge]!
+}
+
+type ProductVariationTypeEdge {
+  node: ProductVariationType
+  cursor: String!
+}
+
+input ProductVariationUpdateInput {
+  skuNo: String
+  variation: String
+  description: String
+  currency: Currency
+  price: Int
+}
+
+type Query {
+  tags(name: String, before: String, after: String, first: Int, last: Int): TagTypeConnection
+  tag(id: ID!): TagType
+  categories(name: String, before: String, after: String, first: Int, last: Int): CategoryTypeConnection
+  category(id: ID!): CategoryType
+  productVariations(productId: Int!, before: String, after: String, first: Int, last: Int): ProductVariationTypeConnection
+  productVariation(id: ID!): ProductVariationType
+  products(name: String, before: String, after: String, first: Int, last: Int): ProductTypeConnection
+  product(id: ID!): ProductType
+}
+
+type Refresh {
+  payload: GenericScalar!
+  refreshExpiresIn: Int!
+  token: String!
+}
+
+input TagCreateInput {
+  name: String!
+  description: String
+}
+
+union TagResponseType = TagType | ErrorType
+
+type TagType implements Node {
+  id: ID!
+  name: String!
+  description: String
+  products(before: String, after: String, first: Int, last: Int): ProductTypeConnection!
+}
+
+type TagTypeConnection {
+  pageInfo: PageInfo!
+  edges: [TagTypeEdge]!
+}
+
+type TagTypeEdge {
+  node: TagType
+  cursor: String!
+}
+
+input UpdateCategoryMutationInput {
+  categoryId: ID!
+  categoryData: CategoryUpdateInput!
+  clientMutationId: String
+}
+
+type UpdateCategoryMutationPayload {
+  ok: Boolean
+  response: CategoryResponseType
+  clientMutationId: String
+}
+
+input UpdateProductMutationInput {
+  productData: ProductUpdateInput!
+  productId: ID
+  clientMutationId: String
+}
+
+type UpdateProductMutationPayload {
+  ok: Boolean
+  response: ProductResponseType
+  clientMutationId: String
+}
+
+input UpdateProductVariationMutationInput {
+  productVariationData: ProductVariationUpdateInput!
+  productVariationId: ID!
+  clientMutationId: String
+}
+
+type UpdateProductVariationMutationPayload {
+  ok: Boolean
+  response: ProductVariationResponseType
+  clientMutationId: String
+}
+
+input UpdateTagMutationInput {
+  clientMutationId: String
+}
+
+type UpdateTagMutationPayload {
+  ok: Boolean
+  response: TagResponseType
+  clientMutationId: String
+}
+
+type UserType {
+  userId: String!
+  firstName: String
+  lastName: String
+  email: String!
+}
+
+type Verify {
+  payload: GenericScalar!
+}
