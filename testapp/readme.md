@@ -453,9 +453,63 @@ class TagQueries(graphene.ObjectType):
 
 [Settings Document](https://django-graphql-jwt.domake.io/en/latest/settings.html)
 
-# 7 Others
 
-## 7.1 DB SQL Logging
+# 7 Add Relay Support
+
+## 7.1 Make Types Compatible with Relay
+
+```python
+# Add graphene.Node to "interfaces" attribute in Meta
+class ProductType(DjangoObjectType):
+    class Meta:
+        model = ProductModel
+        interfaces = (graphene.Node,)  # <-- this line
+```
+
+## 7.2 Make Queris Compatible with Relay
+
+```python
+# Change query fields to "DjangoConnectionField" or "graphene.Node"
+class ProductQueries(graphene.ObjectType):
+    products = DjangoConnectionField(ProductType, name=graphene.Argument(graphene.String))
+    product = graphene.Node.Field(ProductType, id=graphene.Argument(graphene.Int, required=True))
+```
+
+## 7.3 Make Mutations Compatible with Relay
+
+Define Input Class
+```python
+class ProductUpdateInput(graphene.InputObjectType):
+    name = graphene.String()
+    description = graphene.String()
+    category_id = graphene.ID()  # <-- make sure to use graphene.ID()
+```
+
+Define Mutation with Input class
+```python
+class UpdateProductMutation(ClientIDMutation):
+    class Input:   # <-- use "Input" here
+        product_data = graphene.Argument(ProductUpdateInput, required=True)
+        product_id = graphene.ID()
+    
+    # <-- Define the response -->
+    ok = graphene.Boolean()
+    response = graphene.Field(ProductResponseType)
+    
+    # <-- Implement "mutate_and_get_payload" method -->
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, product_id, product_data):
+        try:
+            # <-- Convert the global ID to local id of object -->
+            product_id = from_global_id(product_id)[1]
+            product = ProductModel.objects.get(pk=product_id)
+```
+
+## 7.4 Pending (optimize cursor query)
+
+# 8 Others
+
+## 8.1 DB SQL Logging
 
 Add the following snippet to settings.py
 
@@ -490,13 +544,13 @@ LOGGING = {
 }
 ```
 
-## 7.2 Export GraphQL Schema
+## 8.2 Export GraphQL Schema
 
 ```shellscript
 $ python3 ./manage.py graphql_schema --schema testapp.graphql.schemas.schema --out schema.graphql
 ```
 
-## 7.3 Allow Cross Origin Access (Support pre-flight)
+## 8.3 Allow Cross Origin Access (Support pre-flight)
 
 ```shell script
 $ pip install 'django-cors-headers'
