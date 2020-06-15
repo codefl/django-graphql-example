@@ -1,4 +1,6 @@
 import graphene
+from graphene.relay import ClientIDMutation
+from graphql_relay import from_global_id
 from ..types.response_types import ProductResponseType
 from ...common.common_types import ErrorType
 from ....product.models import ProductModel, CategoryModel, TagModel
@@ -12,30 +14,32 @@ from graphql_jwt.decorators import staff_member_required
 class ProductCreateInput(graphene.InputObjectType):
     name = graphene.String(required=True)
     description = graphene.String()
-    category_id = graphene.Int()
+    category_id = graphene.ID()
 
 
 class ProductUpdateInput(graphene.InputObjectType):
     name = graphene.String()
     description = graphene.String()
-    category_id = graphene.Int()
+    category_id = graphene.ID()
 
 
 ###########################################################################
 # Mutations
 ###########################################################################
-class CreateProductMutation(graphene.Mutation):
-    class Arguments:
+class CreateProductMutation(ClientIDMutation):
+    class Input:
         product_data = graphene.Argument(ProductCreateInput, required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(ProductResponseType)
 
-    @staticmethod
+    @classmethod
     @staff_member_required
-    def mutate(root, info, product_data):
-        cnt = ProductModel.objects.filter(name__exact=product_data.name).count()
+    def mutate_and_get_payload(cls, root, info, product_data):
+        if product_data.category_id is not None:
+            product_data.category_id = from_global_id(product_data.category_id)[1]
 
+        cnt = ProductModel.objects.filter(name__exact=product_data.name).count()
         if cnt > 0:
             r = ErrorType(error_code="DUPLICATE_PRODUCT",
                           error_message="Product {} already exists".format(product_data.name))
@@ -55,18 +59,19 @@ class CreateProductMutation(graphene.Mutation):
             return CreateProductMutation(ok=True, response=p)
 
 
-class UpdateProductMutation(graphene.Mutation):
-    class Arguments:
+class UpdateProductMutation(ClientIDMutation):
+    class Input:
         product_data = graphene.Argument(ProductUpdateInput, required=True)
         product_id = graphene.ID()
 
     ok = graphene.Boolean()
     response = graphene.Field(ProductResponseType)
 
-    @staticmethod
+    @classmethod
     @staff_member_required
-    def mutate(root, info, product_id, product_data):
+    def mutate_and_get_payload(cls, root, info, product_id, product_data):
         try:
+            product_id = from_global_id(product_id)[1]
             product = ProductModel.objects.get(pk=product_id)
 
             if product_data.name is not None:
@@ -91,17 +96,18 @@ class UpdateProductMutation(graphene.Mutation):
             return UpdateProductMutation(ok=False, response=r)
 
 
-class DeleteProductMutation(graphene.Mutation):
-    class Arguments:
-        product_id = graphene.Int(required=True)
+class DeleteProductMutation(ClientIDMutation):
+    class Input:
+        product_id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(ProductResponseType)
 
-    @staticmethod
+    @classmethod
     @staff_member_required
-    def mutate(root, info, product_id):
+    def mutate_and_get_payload(cls, root, info, product_id):
         try:
+            product_id = from_global_id(product_id)[1]
             product = ProductModel.objects.get(pk=product_id)
             product.delete()
             product.id = product_id
@@ -116,18 +122,22 @@ class DeleteProductMutation(graphene.Mutation):
             return UpdateProductMutation(ok=False, response=r)
 
 
-class ProductAddTagMutation(graphene.Mutation):
-    class Arguments:
-        product_id = graphene.Int(required=True)
-        tag_ids = graphene.List(graphene.Int, required=True)
+class ProductAddTagMutation(ClientIDMutation):
+    class Input:
+        product_id = graphene.ID(required=True)
+        tag_ids = graphene.List(graphene.ID, required=True)
 
     ok = graphene.Boolean(required=True)
     response = graphene.Field(ErrorType)
 
-    @staticmethod
+    @classmethod
     @staff_member_required
-    def mutate(root, info, product_id, tag_ids):
+    def mutate_and_get_payload(cls, root, info, product_id, tag_ids):
         try:
+            # Convert to local ids
+            product_id = from_global_id(product_id)[1]
+            tag_ids = [from_global_id(tag_id)[1] for tag_id in tag_ids]
+
             product = ProductModel.objects.get(pk=product_id)
             product_tags = list(product.tags.all())
             tags = TagModel.objects.filter(pk__in=tag_ids)
@@ -153,18 +163,22 @@ class ProductAddTagMutation(graphene.Mutation):
             return UpdateProductMutation(ok=False, response=r)
 
 
-class ProductRemoveTagMutation(graphene.Mutation):
-    class Arguments:
-        product_id = graphene.Int(required=True)
-        tag_ids = graphene.List(graphene.Int, required=True)
+class ProductRemoveTagMutation(ClientIDMutation):
+    class Input:
+        product_id = graphene.ID(required=True)
+        tag_ids = graphene.List(graphene.ID, required=True)
 
     ok = graphene.Boolean(required=True)
     response = graphene.Field(ErrorType)
 
-    @staticmethod
+    @classmethod
     @staff_member_required
-    def mutate(root, info, product_id, tag_ids):
+    def mutate_and_get_payload(cls, root, info, product_id, tag_ids):
         try:
+            # Convert to local ids
+            product_id = from_global_id(product_id)[1]
+            tag_ids = [from_global_id(tag_id)[1] for tag_id in tag_ids]
+
             product = ProductModel.objects.get(pk=product_id)
             tags = list(TagModel.objects.filter(pk__in=tag_ids))
 

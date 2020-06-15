@@ -1,4 +1,6 @@
 import graphene
+from graphene.relay import ClientIDMutation
+from graphql_relay import from_global_id
 from ..types.response_types import TagResponseType
 from ...common.common_types import ErrorType
 from ....product.models import TagModel, ProductModel
@@ -15,17 +17,17 @@ class TagUpdateInput(graphene.InputObjectType):
     description = graphene.String()
 
 
-class CreateTagMutation(graphene.Mutation):
+class CreateTagMutation(ClientIDMutation):
 
-    class Arguments:
+    class Input:
         tag_data = graphene.Argument(TagCreateInput, required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(TagResponseType)
 
-    @staticmethod
+    @classmethod
     @staff_member_required
-    def mutate(root, info, tag_data):
+    def mutate_and_get_payload(cls, root, info, tag_data):
         cnt = TagModel.objects.filter(name__exact=tag_data.name).count()
         if cnt > 0:
             r = ErrorType(error_code="DUPLICATE_TAG",
@@ -37,18 +39,19 @@ class CreateTagMutation(graphene.Mutation):
         return CreateTagMutation(ok=True, response=c)
 
 
-class UpdateTagMutation(graphene.Mutation):
+class UpdateTagMutation(ClientIDMutation):
 
     class Arguments:
-        tag_id = graphene.Int(required=True)
+        tag_id = graphene.ID(required=True)
         tag_data = graphene.Argument(TagUpdateInput, required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(TagResponseType)
 
-    @staticmethod
+    @classmethod
     @staff_member_required
-    def mutate(root, info, tag_id, tag_data):
+    def mutate_and_get_payload(cls, root, info, tag_id, tag_data):
+        tag_id = from_global_id(tag_id)[1]
         if tag_data.name is not None:
             cnt = TagModel.objects.filter(name__exact=tag_data.name).count()
             if cnt > 0:
@@ -71,18 +74,19 @@ class UpdateTagMutation(graphene.Mutation):
             return UpdateTagMutation(ok=False, response=r)
 
 
-class DeleteTagMutation(graphene.Mutation):
+class DeleteTagMutation(ClientIDMutation):
 
-    class Arguments:
-        tag_id = graphene.Int(required=True)
+    class Input:
+        tag_id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(TagResponseType)
 
-    @staticmethod
+    @classmethod
     @staff_member_required
-    def mutate(root, info, tag_id):
+    def mutate_and_get_payload(cls, root, info, tag_id):
         try:
+            tag_id = from_global_id(tag_id)[1]
             cnt = ProductModel.objects.filter(tags__id=tag_id).count()
             if cnt > 0:
                 r = ErrorType(error_code="TAG_IN_USE",

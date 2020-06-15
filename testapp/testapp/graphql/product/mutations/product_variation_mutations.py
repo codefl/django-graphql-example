@@ -1,4 +1,6 @@
 import graphene
+from graphene.relay import ClientIDMutation
+from graphql_relay import from_global_id
 from ..types.response_types import ProductVariationResponseType
 from ...common.common_types import ErrorType
 from ..types import Currency
@@ -15,7 +17,6 @@ class ProductVariationCreateInput(graphene.InputObjectType):
     description = graphene.String()
     currency = Currency(required=True)
     price = graphene.Int(required=True)
-    product_id = graphene.Int(required=True)
 
 
 class ProductVariationUpdateInput(graphene.InputObjectType):
@@ -29,16 +30,18 @@ class ProductVariationUpdateInput(graphene.InputObjectType):
 ###########################################################################
 # Mutations
 ###########################################################################
-class CreateProductVariationMutation(graphene.Mutation):
-    class Arguments:
+class CreateProductVariationMutation(ClientIDMutation):
+    class Input:
+        product_id = graphene.ID(required=True)
         product_variation_data = graphene.Argument(ProductVariationCreateInput, required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(ProductVariationResponseType)
 
-    @staticmethod
+    @classmethod
     @staff_member_required
-    def mutate(root, info, product_variation_data):
+    def mutate_and_get_payload(cls, root, info, product_id, product_variation_data):
+        product_id = from_global_id(product_id)[1]
         cnt = ProductVariationModel.objects.filter(sku_no__exact=product_variation_data.sku_no).count()
 
         if cnt > 0:
@@ -48,7 +51,7 @@ class CreateProductVariationMutation(graphene.Mutation):
             return CreateProductVariationMutation(ok=False, response=r)
         else:
             try:
-                p = ProductModel.objects.get(pk=product_variation_data.product_id)
+                p = ProductModel.objects.get(pk=product_id)
                 pv = ProductVariationModel(variation=product_variation_data.variation,
                                            sku_no=product_variation_data.sku_no,
                                            description=product_variation_data.description,
@@ -64,18 +67,19 @@ class CreateProductVariationMutation(graphene.Mutation):
                 return CreateProductVariationMutation(ok=False, response=r)
 
 
-class UpdateProductVariationMutation(graphene.Mutation):
-    class Arguments:
+class UpdateProductVariationMutation(ClientIDMutation):
+    class Input:
         product_variation_data = graphene.Argument(ProductVariationUpdateInput, required=True)
-        product_variation_id = graphene.ID()
+        product_variation_id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(ProductVariationResponseType)
 
-    @staticmethod
+    @classmethod
     @staff_member_required
-    def mutate(root, info, product_variation_id, product_variation_data):
+    def mutate_and_get_payload(cls, root, info, product_variation_id, product_variation_data):
         try:
+            product_variation_id = from_global_id(product_variation_id)[1]
             pv = ProductVariationModel.objects.get(pk=product_variation_id)
 
             if product_variation_data.sku_no is not None:
@@ -98,17 +102,18 @@ class UpdateProductVariationMutation(graphene.Mutation):
             return UpdateProductVariationMutation(ok=False, response=r)
 
 
-class DeleteProductVariationMutation(graphene.Mutation):
-    class Arguments:
-        product_variation_id = graphene.ID()
+class DeleteProductVariationMutation(ClientIDMutation):
+    class Input:
+        product_variation_id = graphene.ID(required=True)
 
     ok = graphene.Boolean()
     response = graphene.Field(ProductVariationResponseType)
 
-    @staticmethod
+    @classmethod
     @staff_member_required
-    def mutate(root, info, product_variation_id):
+    def mutate_and_get_payload(cls, root, info, product_variation_id):
         try:
+            product_variation_id = from_global_id(product_variation_id)[1]
             pv = ProductVariationModel.objects.get(pk=product_variation_id)
             pv.delete()
             pv.id = product_variation_id
