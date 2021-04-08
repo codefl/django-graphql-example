@@ -6,7 +6,7 @@ asynctest==0.13.0
 attrs==19.3.0
 certifi==2020.4.5.2
 chardet==3.0.4
-Django==3.0.7
+Django==3.0.14
 django-cors-headers==3.3.0
 django-graphql-jwt==0.3.1
 django-js-asset==1.2.2
